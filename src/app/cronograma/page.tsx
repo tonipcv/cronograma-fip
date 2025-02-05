@@ -50,19 +50,17 @@ export default function Cronograma() {
   }, [status]);
 
   // Função de login
-  const handleLogin = async (email: string, password: string) => {
+  const handleLogin = async (email: string, cpf: string) => {
     try {
       const result = await signIn('credentials', {
         email,
-        password,
+        cpf,
         redirect: false,
       });
 
       if (result?.error) {
         throw new Error(result.error);
       }
-
-      // O NextAuth vai atualizar a sessão automaticamente
     } catch (err: any) {
       throw new Error(err.message);
     }

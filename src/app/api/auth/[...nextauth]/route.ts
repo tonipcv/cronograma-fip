@@ -1,7 +1,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
-import bcrypt from "bcryptjs";
 
 if (!process.env.NEXTAUTH_SECRET) {
   throw new Error("NEXTAUTH_SECRET must be set");
@@ -14,28 +13,28 @@ const handler = NextAuth({
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+        cpf: { label: "CPF", type: "text" }
       },
       async authorize(credentials) {
         try {
-          console.log('Tentativa de autorização:', credentials);
-
-          if (!credentials?.email || !credentials?.password) {
-            throw new Error('Email e senha são obrigatórios');
+          if (!credentials?.email || !credentials?.cpf) {
+            throw new Error('Email e CPF são obrigatórios');
           }
 
-          const user = await prisma.cronograma.findUnique({
-            where: { email: credentials.email.toLowerCase() }
+          // Remove caracteres especiais do CPF
+          const formattedCPF = credentials.cpf.replace(/\D/g, '');
+
+          const user = await prisma.cronograma.findFirst({
+            where: {
+              AND: [
+                { email: credentials.email.toLowerCase() },
+                { cpf: formattedCPF }
+              ]
+            }
           });
 
           if (!user) {
-            throw new Error('Email ou senha inválidos');
-          }
-
-          const isValidPassword = await bcrypt.compare(credentials.password, user.password);
-
-          if (!isValidPassword) {
-            throw new Error('Email ou senha inválidos');
+            throw new Error('Email ou CPF inválidos');
           }
 
           return {

@@ -27,7 +27,7 @@ export async function POST(request: Request) {
 
     // Parse do body
     const body = await request.json();
-    const { name, email, password, cpf, whatsapp, instagram, enrollmentDate } = body;
+    const { name, email, cpf, whatsapp, instagram, enrollmentDate } = body;
 
     // Log detalhado dos dados recebidos
     console.log('\n=== TENTATIVA DE CADASTRO ===');
@@ -38,7 +38,6 @@ export async function POST(request: Request) {
       whatsapp,
       instagram,
       enrollmentDate,
-      password: '***',
       headers: Object.fromEntries(request.headers.entries())
     });
 
@@ -46,7 +45,6 @@ export async function POST(request: Request) {
     const camposFaltantes = [];
     if (!name) camposFaltantes.push('name');
     if (!email) camposFaltantes.push('email');
-    if (!password) camposFaltantes.push('password');
     if (!cpf) camposFaltantes.push('cpf');
     if (!whatsapp) camposFaltantes.push('whatsapp');
     if (!enrollmentDate) camposFaltantes.push('enrollmentDate');
@@ -57,7 +55,6 @@ export async function POST(request: Request) {
         dadosRecebidos: {
           name: !!name,
           email: !!email,
-          password: !!password,
           cpf: !!cpf,
           whatsapp: !!whatsapp,
           enrollmentDate: !!enrollmentDate
@@ -132,15 +129,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Hash da senha
-    const hashedPassword = await bcrypt.hash(password, 10);
-    console.log('Senha processada com sucesso');
-
     // Prepara os dados para criação
     const userData = {
       name: name.trim(),
       email: formattedEmail,
-      password: hashedPassword,
       cpf: formattedCPF,
       whatsapp: whatsapp.replace(/\D/g, ''),
       instagram: instagram?.trim() || null,
@@ -149,10 +141,7 @@ export async function POST(request: Request) {
       updatedAt: new Date(),
     };
 
-    console.log('Tentando criar usuário com dados:', {
-      ...userData,
-      password: '***'
-    });
+    console.log('Tentando criar usuário com dados:', userData);
 
     // Cria o usuário
     const customer = await prisma.cronograma.create({
@@ -167,12 +156,9 @@ export async function POST(request: Request) {
       createdAt: customer.createdAt
     });
 
-    // Remove a senha do retorno
-    const { password: _, ...customerWithoutPassword } = customer;
-
     return NextResponse.json({
       success: true,
-      customer: customerWithoutPassword
+      customer
     }, {
       status: 201,
       headers: {

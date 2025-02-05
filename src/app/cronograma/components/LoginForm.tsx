@@ -5,12 +5,12 @@ import Link from 'next/link';
 
 interface LoginFormProps {
   language: 'pt' | 'en';
-  onLogin: (email: string, password: string) => Promise<void>;
+  onLogin: (email: string, cpf: string) => Promise<void>;
 }
 
 export function LoginForm({ language, onLogin }: LoginFormProps) {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [cpf, setCpf] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -20,12 +20,30 @@ export function LoginForm({ language, onLogin }: LoginFormProps) {
     setError('');
 
     try {
-      await onLogin(email, password);
+      await onLogin(email, cpf);
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Formata o CPF enquanto digita
+  const handleCPFChange = (value: string) => {
+    const cpfNumbers = value.replace(/\D/g, '');
+    let formattedCPF = cpfNumbers;
+    
+    if (cpfNumbers.length > 3) {
+      formattedCPF = `${cpfNumbers.slice(0, 3)}.${cpfNumbers.slice(3)}`;
+    }
+    if (cpfNumbers.length > 6) {
+      formattedCPF = `${formattedCPF.slice(0, 7)}.${cpfNumbers.slice(6)}`;
+    }
+    if (cpfNumbers.length > 9) {
+      formattedCPF = `${formattedCPF.slice(0, 11)}-${cpfNumbers.slice(9, 11)}`;
+    }
+
+    setCpf(formattedCPF);
   };
 
   return (
@@ -54,15 +72,16 @@ export function LoginForm({ language, onLogin }: LoginFormProps) {
 
           <div>
             <label className="block text-sm font-medium text-neutral-200 mb-2">
-              {language === 'pt' ? 'Senha' : 'Password'}
+              CPF
             </label>
             <input
-              type="password"
+              type="text"
               required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={cpf}
+              onChange={(e) => handleCPFChange(e.target.value)}
+              maxLength={14}
               className="w-full bg-black/50 border border-neutral-800 rounded-lg px-4 py-3 text-white placeholder-neutral-500 focus:outline-none focus:border-green-500/50 transition-colors"
-              placeholder={language === 'pt' ? 'Sua senha' : 'Your password'}
+              placeholder={language === 'pt' ? 'Seu CPF' : 'Your CPF'}
             />
           </div>
 

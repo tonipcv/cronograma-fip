@@ -1,47 +1,47 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import bcrypt from 'bcryptjs';
 
 export async function POST(request: Request) {
   try {
-    const { email, password } = await request.json();
+    const { email, cpf } = await request.json();
 
-    const user = await prisma.cronograma.findUnique({
-      where: { email: email.toLowerCase() }
+    if (!email || !cpf) {
+      return NextResponse.json(
+        { error: 'Email e CPF são obrigatórios' },
+        { status: 400 }
+      );
+    }
+
+    // Remove caracteres especiais do CPF
+    const formattedCPF = cpf.replace(/\D/g, '');
+
+    const user = await prisma.cronograma.findFirst({
+      where: {
+        AND: [
+          { email: email.toLowerCase() },
+          { cpf: formattedCPF }
+        ]
+      }
     });
 
     if (!user) {
       return NextResponse.json(
-        { error: 'Email ou senha inválidos' },
+        { error: 'Email ou CPF inválidos' },
         { status: 401 }
       );
     }
 
-    const isValidPassword = await bcrypt.compare(password, user.password);
-
-    if (!isValidPassword) {
-      return NextResponse.json(
-        { error: 'Email ou senha inválidos' },
-        { status: 401 }
-      );
-    }
+    // Remove dados sensíveis antes de retornar
+    const { cpf: userCpf, ...userWithoutSensitiveData } = user;
 
     return NextResponse.json({
-      success: true,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        cpf: user.cpf,
-        whatsapp: user.whatsapp,
-        instagram: user.instagram,
-        enrollmentDate: user.enrollmentDate
-      }
+      user: userWithoutSensitiveData
     });
+
   } catch (error) {
-    console.error('Error in auth:', error);
+    console.error('Erro na autenticação:', error);
     return NextResponse.json(
-      { error: 'Erro ao autenticar' },
+      { error: 'Erro ao autenticar usuário' },
       { status: 500 }
     );
   }
