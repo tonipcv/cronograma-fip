@@ -56,6 +56,7 @@ export default function Cronograma() {
         email,
         cpf,
         redirect: false,
+        callbackUrl: '/cronograma'
       });
 
       if (result?.error) {

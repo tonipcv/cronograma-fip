@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { signIn } from 'next-auth/react';
 
 interface LoginFormProps {
   language: 'pt' | 'en';
@@ -20,7 +21,21 @@ export function LoginForm({ language, onLogin }: LoginFormProps) {
     setError('');
 
     try {
-      await onLogin(email, cpf);
+      const result = await signIn('credentials', {
+        email,
+        cpf,
+        redirect: false,
+        callbackUrl: '/cronograma'
+      });
+
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+
+      // Se o login for bem sucedido, redireciona
+      if (result?.ok) {
+        window.location.href = '/cronograma';
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {

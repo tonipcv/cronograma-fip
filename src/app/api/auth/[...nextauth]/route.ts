@@ -10,10 +10,19 @@ const handler = NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
-      name: "Credentials",
+      id: 'credentials',
+      name: 'Credentials',
       credentials: {
-        email: { label: "Email", type: "email" },
-        cpf: { label: "CPF", type: "text" }
+        email: { 
+          label: "Email", 
+          type: "email",
+          placeholder: "seu@email.com"
+        },
+        cpf: { 
+          label: "CPF", 
+          type: "text",
+          placeholder: "000.000.000-00"
+        }
       },
       async authorize(credentials) {
         try {
@@ -39,23 +48,24 @@ const handler = NextAuth({
 
           return {
             id: user.id,
-            email: user.email,
             name: user.name,
+            email: user.email,
             enrollmentDate: user.enrollmentDate,
           };
-        } catch (error) {
-          console.error('Erro na autorização:', error);
-          return null;
+        } catch (error: any) {
+          console.error('Erro na autenticação:', error);
+          throw new Error(error.message);
         }
       }
     })
   ],
   session: {
-    strategy: "jwt",
+    strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 dias
   },
   pages: {
     signIn: '/cronograma',
+    error: '/cronograma',
   },
   callbacks: {
     async jwt({ token, user }) {
