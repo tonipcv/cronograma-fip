@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = "postgres://postgres:649da4effde0391f213a@dpbdp1.easypanel.host:5384/futurostechnotification?sslmode=disable"
 }
 
 model WhatsappLead {
@@ -15,9 +15,40 @@ model WhatsappLead {
 }
 
 model WhatsappFrio {
-  id          Int      @id @default(autoincrement())
-  phone       String
-  countryCode String
-  createdAt   DateTime @default(now())
-  isGroupMember Boolean @default(false)
+  id            Int      @id @default(autoincrement())
+  phone         String
+  countryCode   String
+  createdAt     DateTime @default(now())
+  isGroupMember Boolean  @default(false)
+}
+
+model Customer {
+  id              String   @id @default(cuid())
+  name            String
+  email           String   @unique
+  cpf             String   @unique
+  whatsapp        String
+  instagram       String?
+  enrollmentDate  DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([email])
+  @@index([cpf])
+}
+
+model Cronograma {
+  id              String   @id @default(cuid())
+  name            String
+  email           String   @unique
+  password        String
+  cpf             String   @unique
+  whatsapp        String
+  instagram       String?
+  enrollmentDate  DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([email])
+  @@index([cpf])
 } 
