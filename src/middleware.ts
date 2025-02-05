@@ -7,11 +7,24 @@ export default withAuth(
     if (req.nextUrl.pathname === '/') {
       return NextResponse.redirect(new URL('/cronograma', req.url));
     }
+
+    // Permite acesso à página de registro
+    if (req.nextUrl.pathname === '/cronograma/registro') {
+      return NextResponse.next();
+    }
+
     return NextResponse.next();
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token,
+      authorized: ({ token, req }) => {
+        // Permite acesso à página de registro sem autenticação
+        if (req.nextUrl.pathname === '/cronograma/registro') {
+          return true;
+        }
+        // Para outras rotas, requer autenticação
+        return !!token;
+      },
     },
     pages: {
       signIn: '/cronograma',
@@ -22,7 +35,7 @@ export default withAuth(
 export const config = {
   matcher: [
     '/',
-    '/cronograma/registro',
+    '/cronograma',
     '/api/cronograma/protected/:path*',
     '/cronograma/dashboard',
   ],

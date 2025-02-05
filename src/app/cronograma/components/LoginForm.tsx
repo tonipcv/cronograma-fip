@@ -2,14 +2,15 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 
 interface LoginFormProps {
   language: 'pt' | 'en';
-  onLogin: (email: string, cpf: string) => Promise<void>;
 }
 
-export function LoginForm({ language, onLogin }: LoginFormProps) {
+export function LoginForm({ language }: LoginFormProps) {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [cpf, setCpf] = useState('');
   const [loading, setLoading] = useState(false);
@@ -21,23 +22,25 @@ export function LoginForm({ language, onLogin }: LoginFormProps) {
     setError('');
 
     try {
+      // Simplifica a chamada do signIn
       const result = await signIn('credentials', {
-        email,
-        cpf,
         redirect: false,
-        callbackUrl: '/cronograma'
+        email: email.toLowerCase().trim(),
+        cpf: cpf.replace(/\D/g, ''), // Remove caracteres não numéricos
       });
 
       if (result?.error) {
-        throw new Error(result.error);
+        setError(language === 'pt' ? 'Email ou CPF inválidos' : 'Invalid email or CPF');
+        return;
       }
 
-      // Se o login for bem sucedido, redireciona
-      if (result?.ok) {
-        window.location.href = '/cronograma';
-      }
-    } catch (err: any) {
-      setError(err.message);
+      // Redireciona em caso de sucesso
+      router.push('/cronograma');
+      router.refresh();
+      
+    } catch (err) {
+      setError(language === 'pt' ? 'Erro ao fazer login' : 'Login error');
+      console.error('Login error:', err);
     } finally {
       setLoading(false);
     }

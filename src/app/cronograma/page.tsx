@@ -49,24 +49,6 @@ export default function Cronograma() {
     }
   }, [status]);
 
-  // Função de login
-  const handleLogin = async (email: string, cpf: string) => {
-    try {
-      const result = await signIn('credentials', {
-        email,
-        cpf,
-        redirect: false,
-        callbackUrl: '/cronograma'
-      });
-
-      if (result?.error) {
-        throw new Error(result.error);
-      }
-    } catch (err: any) {
-      throw new Error(err.message);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -351,8 +333,7 @@ export default function Cronograma() {
             </div>
 
             <LoginForm 
-              language={language} 
-              onLogin={handleLogin}
+              language={language}
             />
           </div>
         </div>
