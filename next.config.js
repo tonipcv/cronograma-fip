@@ -13,7 +13,11 @@ const nextConfig = {
         ],
       },
     ]
-  }
+  },
+  output: 'standalone',
+  images: {
+    domains: ['seu-dominio-de-imagens.com'], // Adicione os domínios das suas imagens aqui
+  },
 }
 
 module.exports = nextConfig 
