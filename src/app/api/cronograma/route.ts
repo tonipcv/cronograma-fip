@@ -2,6 +2,14 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 
+// Interface para o erro do Prisma
+interface PrismaError extends Error {
+  code?: string;
+  meta?: {
+    target?: string[];
+  };
+}
+
 export async function POST(request: Request) {
   try {
     // Verifica o content-type
@@ -172,24 +180,28 @@ export async function POST(request: Request) {
       }
     });
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('\n=== ERRO NO CADASTRO ===');
+    
+    // Trata o erro como PrismaError
+    const prismaError = error as PrismaError;
+    
     console.error('Detalhes do erro:', {
-      message: error.message,
-      code: error.code,
-      name: error.name,
-      stack: error.stack,
-      prismaError: error?.meta,
+      message: prismaError.message,
+      code: prismaError.code,
+      name: prismaError.name,
+      stack: prismaError.stack,
+      prismaError: prismaError.meta,
     });
     
     // Verifica se é um erro do Prisma
-    if (error.code) {
-      switch (error.code) {
+    if (prismaError.code) {
+      switch (prismaError.code) {
         case 'P2002':
-          const field = error.meta?.target?.[0];
+          const field = prismaError.meta?.target?.[0];
           console.error('Erro de unicidade:', {
             campo: field,
-            detalhes: error.meta
+            detalhes: prismaError.meta
           });
           return NextResponse.json(
             { 
@@ -200,13 +212,13 @@ export async function POST(request: Request) {
           );
         default:
           console.error('Erro do Prisma não tratado:', {
-            code: error.code,
-            meta: error.meta
+            code: prismaError.code,
+            meta: prismaError.meta
           });
           return NextResponse.json(
             { 
               error: 'Erro ao criar usuário',
-              details: error.message
+              details: prismaError.message
             },
             { status: 500 }
           );
@@ -216,7 +228,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { 
         error: 'Erro interno do servidor',
-        details: error.message
+        details: prismaError.message
       },
       { status: 500 }
     );
@@ -236,12 +248,19 @@ export async function GET(request: Request) {
       );
     }
 
-    const where = {
+    // Define o tipo correto para a condição OR
+    const where: {
+      OR: { email: string }[] | { cpf: string }[]
+    } = {
       OR: []
     };
 
-    if (email) where.OR.push({ email });
-    if (cpf) where.OR.push({ cpf });
+    if (email) {
+      where.OR = [...where.OR, { email }] as { email: string }[];
+    }
+    if (cpf) {
+      where.OR = [...where.OR, { cpf }] as { cpf: string }[];
+    }
 
     const customer = await prisma.cronograma.findFirst({ where });
 
