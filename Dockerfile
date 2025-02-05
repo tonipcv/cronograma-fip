@@ -5,14 +5,20 @@ WORKDIR /app
 # Dependencies
 FROM base AS deps
 # Copiar arquivos necessários primeiro
-COPY package.json package-lock.json* prisma ./
+COPY package.json package-lock.json* ./
+COPY prisma ./prisma
 RUN npm ci
 
 # Builder
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# Gerar cliente Prisma após ter todos os arquivos
+
+# Definir variável temporária para o build
+ENV NEXTAUTH_SECRET="temporary_secret_for_build"
+ENV DATABASE_URL="postgresql://dummy:dummy@dummy:5432/dummy"
+
+# Gerar cliente Prisma e build
 RUN npx prisma generate
 RUN npm run build
 
@@ -41,8 +47,9 @@ EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-# As variáveis de ambiente sensíveis devem ser configuradas no EasyPanel
-# ENV NEXTAUTH_URL=https://seu-dominio.com
-# ENV NEXTAUTH_SECRET=seu-secret-aqui
+# As variáveis reais devem ser configuradas no EasyPanel
+# ENV NEXTAUTH_URL=
+# ENV NEXTAUTH_SECRET=
+# ENV DATABASE_URL=
 
 CMD ["node", "server.js"] 
