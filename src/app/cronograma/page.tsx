@@ -504,7 +504,7 @@ export default function Cronograma() {
             </a>
 
             <a
-              href="https://chat.whatsapp.com/FMbIa2JGxa15j628J1J60Y"
+              href="https://chat.whatsapp.com/LiOnLgWgFSXFk6xd0iI8oN"
               target="_blank"
               rel="noopener noreferrer"
               className="w-full sm:w-auto flex items-center justify-center gap-2 bg-green-600/20 hover:bg-green-600/30 text-green-500 px-6 py-3 rounded-lg transition-colors text-sm sm:text-base"
